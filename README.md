@@ -28,9 +28,15 @@ All data lives in the database: `members`, `dishes`, `day_plans`, `plan_options`
    npm run db:setup
    ```
 2. In the [Vercel dashboard](https://vercel.com): **Add New Project** → import `aroraa-mon/ajj-kya-banega` (or your fork).
-3. Project → **Settings → Environment Variables** → add for Production (and Preview if you want):
+3. Project → **Settings → General / Build & Development**:
+   - Framework Preset: **Other**
+   - Build Command: `npm run typecheck` (or leave blank so `vercel.json` applies) — **not** `npm start`
+   - Output Directory: leave **empty** (do not set `public` or `dist`)
+   - Install Command: `npm install`
+   - Node.js Version: **22.x**
+4. Project → **Settings → Environment Variables** → add for Production (and Preview if you want):
    - `DATABASE_URL` = your Supabase **Session pooler** URI (same value as local `.env`)
-4. Deploy. Open `https://YOUR_PROJECT.vercel.app/api/health` — expect `{"ok":true}` (JSON, not the HTML page).
+5. Deploy. Open `https://YOUR_PROJECT.vercel.app/api/health` — expect `{"ok":true}` (JSON, not the HTML page).
 
 CLI alternative (after `npm i -g vercel` and login):
 ```bash
