@@ -24,9 +24,11 @@ export class PgDatabase implements Database {
   private pool: pg.Pool;
   constructor(url: string) {
     const local = /@(localhost|127\.0\.0\.1)[:/]/.test(url);
+    // Vercel Functions: keep the pool tiny so cold starts don't open many connections.
+    const max = process.env.VERCEL ? 1 : 5;
     this.pool = new pg.Pool({
       connectionString: url,
-      max: 5,
+      max,
       // Supabase requires TLS. Its certificate chain isn't in Node's default store.
       ssl: local ? undefined : { rejectUnauthorized: false },
     });
@@ -80,6 +82,9 @@ export class PgliteDatabase implements Database {
 /** DATABASE_URL set: Postgres/Supabase. Otherwise: a local database in data/pgdata. */
 export function openDatabase(env: NodeJS.ProcessEnv = process.env): { db: Database; kind: "postgres" | "pglite" } {
   if (env.DATABASE_URL) return { db: new PgDatabase(env.DATABASE_URL), kind: "postgres" };
+  if (env.NODE_ENV === "production" || env.VERCEL) {
+    throw new Error("DATABASE_URL is required in production (set your Supabase session pooler URI on Vercel).");
+  }
   return { db: new PgliteDatabase(path.join(root, "data", "pgdata")), kind: "pglite" };
 }
 

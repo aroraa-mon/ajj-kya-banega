@@ -2,11 +2,11 @@
 
 One breakfast answer a day for the family. Today's breakfast is locked; tomorrow's is open for voting until 11:59 pm IST.
 
-## Run it
+## Run it (local)
 Node 22 or newer.
 ```bash
 npm install
-npm start          # http://localhost:3000
+npm run dev        # http://localhost:3000 (TypeScript via tsx)
 npm test           # rules simulation + voting, re-roll and database tests (real SQL)
 ```
 With no `.env`, it uses a local database in `data/pgdata` (same SQL as Supabase), created automatically. Good for trying it out.
@@ -16,9 +16,40 @@ With no `.env`, it uses a local database in `data/pgdata` (same SQL as Supabase)
 2. Project Settings > Database > Connection string. Copy the **Session pooler** URI.
 3. `cp .env.example .env` and paste it as `DATABASE_URL` (keep this file private; never commit it).
 4. `npm run db:setup` creates the tables and loads the dishes and members. Safe to re-run.
-5. `npm start`.
+5. `npm run dev` (or build + start below).
 
 All data lives in the database: `members`, `dishes`, `day_plans`, `plan_options`, `votes`, `dish_weights` (see `db/schema.sql`). The server connects directly, so everyone's phones see the same votes. Row level security is on with no policies, so the public Supabase API key can't read or change anything.
+
+## Production (Vercel)
+This is an Express app. Vercel detects `src/server.ts`, serves `public/` from the CDN, and runs the API as one Fluid Function (region `bom1` / Mumbai).
+
+1. One-time schema/seed against Supabase (from your laptop, with `.env` set):
+   ```bash
+   npm run db:setup
+   ```
+2. In the [Vercel dashboard](https://vercel.com): **Add New Project** → import `aroraa-mon/ajj-kya-banega` (or your fork).
+3. Project → **Settings → Environment Variables** → add for Production (and Preview if you want):
+   - `DATABASE_URL` = your Supabase **Session pooler** URI (same value as local `.env`)
+4. Deploy. Open `https://YOUR_PROJECT.vercel.app/api/health` — expect `{"ok":true}`.
+
+CLI alternative (after `npm i -g vercel` and login):
+```bash
+vercel          # preview
+vercel --prod   # production
+```
+When prompted for env, paste `DATABASE_URL`. Do not commit `.env`.
+
+Local/Docker still work the same:
+```bash
+npm run build && NODE_ENV=production npm start
+```
+
+### Production checklist
+- [ ] Supabase project created; session pooler URI ready
+- [ ] `npm run db:setup` succeeded against that database
+- [ ] `DATABASE_URL` set in Vercel Production env
+- [ ] `/api/health` returns `{"ok":true}` on the Vercel URL
+- [ ] Family can unlock with their PINs on phones
 
 ## Edit things
 | What | Where |

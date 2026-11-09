@@ -6,10 +6,12 @@
   "description": "One breakfast answer a day for the family, with voting and a cook override",
   "scripts": {
     "dev": "tsx src/server.ts",
-    "start": "tsx src/server.ts",
-    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/server.js",
+    "typecheck": "tsc -p tsconfig.test.json --noEmit",
     "test": "vitest run",
-    "db:setup": "tsx src/setup.ts"
+    "db:setup": "tsx src/setup.ts",
+    "db:setup:prod": "node dist/setup.js"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.15",

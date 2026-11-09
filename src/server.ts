@@ -27,8 +27,7 @@ if (kind === "pglite") {
   try {
     await db.query("select 1 from dishes limit 1");
   } catch {
-    console.error("Database tables not found. Run `npm run db:setup` once, then start again.");
-    process.exit(1);
+    throw new Error("Database tables not found. Run `npm run db:setup` once, then start again.");
   }
   console.log("Connected to Postgres (Supabase).");
 }
@@ -37,6 +36,7 @@ const planner = new Planner(db);
 
 const app = express();
 app.use(express.json());
+// Local/Docker only. On Vercel, files in public/ are served from the CDN.
 app.use(express.static(path.join(root, "public")));
 
 const wrap =
@@ -53,11 +53,20 @@ const wrap =
     }
   };
 
+app.get("/api/health", (_req, res) => {
+  res.json({ ok: true });
+});
 app.get("/api/home", wrap((req) => planner.home(String(req.query.member ?? "") || undefined)));
 app.post("/api/pin", wrap((req) => planner.setPin(String(req.body.member ?? ""), String(req.body.pin ?? ""))));
 app.post("/api/unlock", wrap((req) => planner.unlock(String(req.body.member ?? ""), String(req.body.pin ?? ""))));
 app.post("/api/vote", wrap((req) => planner.vote(String(req.body.member), String(req.body.date), String(req.body.dishId), String(req.body.token ?? ""))));
 app.post("/api/reroll", wrap((req) => planner.reroll(String(req.body.member), String(req.body.date), String(req.body.token ?? ""))));
 
-const port = Number(process.env.PORT ?? 3000);
-app.listen(port, () => console.log(`Aaj Kya Banega running on http://localhost:${port}`));
+export default app;
+
+// Traditional Node listen for local/Docker. Vercel imports the default export instead.
+if (!process.env.VERCEL) {
+  const port = Number(process.env.PORT ?? 3000);
+  const host = process.env.HOST ?? "0.0.0.0";
+  app.listen(port, host, () => console.log(`Aaj Kya Banega running on http://${host}:${port}`));
+}

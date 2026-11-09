@@ -1,0 +1,13 @@
+node_modules
+dist
+data/pgdata
+data/pins.json
+.env
+.git
+.DS_Store
+**/.DS_Store
+public/Untitled
+test
+*.md
+.cursor
+agent-transcripts
