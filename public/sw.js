@@ -1,5 +1,5 @@
 // Bump VERSION when the shell files change, so phones drop the old cache.
-const VERSION = "v1";
+const VERSION = "v2";
 const CACHE = `akb-${VERSION}`;
 const SHELL = [
   "/",
@@ -26,7 +26,7 @@ self.addEventListener("activate", (event) => {
 });
 
 // Network first so votes and new code show up right away; the cache is only an offline fallback.
-// Votes, re-rolls and PIN calls are POSTs and never touch the cache.
+// Never touch /api — a cached HTML shell was breaking the member list on Vercel.
 async function networkFirst(request, fallbackUrl) {
   const cache = await caches.open(CACHE);
   try {
@@ -45,7 +45,7 @@ self.addEventListener("fetch", (event) => {
   if (request.method !== "GET") return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
-  if (url.pathname.startsWith("/api/") && url.pathname !== "/api/home") return;
+  if (url.pathname.startsWith("/api/")) return;
   const fallback = request.mode === "navigate" ? "/" : undefined;
   event.respondWith(networkFirst(request, fallback));
 });

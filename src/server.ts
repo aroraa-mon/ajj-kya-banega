@@ -10,40 +10,51 @@ import type { Member } from "./types.js";
 
 loadEnv();
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const { db, kind } = openDatabase();
-
-if (kind === "pglite") {
-  // Local mode (no DATABASE_URL): create and fill the local database automatically.
-  const members: Member[] = JSON.parse(readFileSync(path.join(root, "data", "members.json"), "utf8"));
-  await db.exec(schemaSql());
-  const { rows } = await db.query<{ n: number }>("select count(*)::int as n from dishes");
-  const pins = loadOrCreatePins(root, members);
-  await db.transaction(async (q) => {
-    if (rows[0].n === 0) await seed(q, members);
-    await applyPins(q, members, pins, false);
-  });
-  console.log("Using the local database in data/pgdata (set DATABASE_URL to use Supabase).");
-} else {
-  try {
-    await db.query("select 1 from dishes limit 1");
-  } catch {
-    throw new Error("Database tables not found. Run `npm run db:setup` once, then start again.");
-  }
-  console.log("Connected to Postgres (Supabase).");
-}
-
-const planner = new Planner(db);
 
 const app = express();
 app.use(express.json());
 // Local/Docker only. On Vercel, files in public/ are served from the CDN.
-app.use(express.static(path.join(root, "public")));
+if (!process.env.VERCEL) {
+  app.use(express.static(path.join(root, "public")));
+}
+
+let plannerReady: Promise<Planner> | undefined;
+
+/** Connect (and seed local DB) on first request so the module can load on Vercel without env at import time. */
+function getPlanner(): Promise<Planner> {
+  if (!plannerReady) {
+    plannerReady = (async () => {
+      const { db, kind } = openDatabase();
+      if (kind === "pglite") {
+        const members: Member[] = JSON.parse(readFileSync(path.join(root, "data", "members.json"), "utf8"));
+        await db.exec(schemaSql());
+        const { rows } = await db.query<{ n: number }>("select count(*)::int as n from dishes");
+        const pins = loadOrCreatePins(root, members);
+        await db.transaction(async (q) => {
+          if (rows[0].n === 0) await seed(q, members);
+          await applyPins(q, members, pins, false);
+        });
+        console.log("Using the local database in data/pgdata (set DATABASE_URL to use Supabase).");
+      } else {
+        try {
+          await db.query("select 1 from dishes limit 1");
+        } catch {
+          throw new Error("Database tables not found. Run `npm run db:setup` once, then start again.");
+        }
+        console.log("Connected to Postgres (Supabase).");
+      }
+      return new Planner(db);
+    })();
+  }
+  return plannerReady;
+}
 
 const wrap =
-  (fn: (req: express.Request) => Promise<unknown>): express.RequestHandler =>
+  (fn: (planner: Planner, req: express.Request) => Promise<unknown>): express.RequestHandler =>
   async (req, res) => {
     try {
-      res.json(await fn(req));
+      const planner = await getPlanner();
+      res.json(await fn(planner, req));
     } catch (e) {
       const status = e instanceof PlannerError ? e.status : 500;
       if (status === 500) console.error(e);
@@ -56,11 +67,11 @@ const wrap =
 app.get("/api/health", (_req, res) => {
   res.json({ ok: true });
 });
-app.get("/api/home", wrap((req) => planner.home(String(req.query.member ?? "") || undefined)));
-app.post("/api/pin", wrap((req) => planner.setPin(String(req.body.member ?? ""), String(req.body.pin ?? ""))));
-app.post("/api/unlock", wrap((req) => planner.unlock(String(req.body.member ?? ""), String(req.body.pin ?? ""))));
-app.post("/api/vote", wrap((req) => planner.vote(String(req.body.member), String(req.body.date), String(req.body.dishId), String(req.body.token ?? ""))));
-app.post("/api/reroll", wrap((req) => planner.reroll(String(req.body.member), String(req.body.date), String(req.body.token ?? ""))));
+app.get("/api/home", wrap((planner, req) => planner.home(String(req.query.member ?? "") || undefined)));
+app.post("/api/pin", wrap((planner, req) => planner.setPin(String(req.body.member ?? ""), String(req.body.pin ?? ""))));
+app.post("/api/unlock", wrap((planner, req) => planner.unlock(String(req.body.member ?? ""), String(req.body.pin ?? ""))));
+app.post("/api/vote", wrap((planner, req) => planner.vote(String(req.body.member), String(req.body.date), String(req.body.dishId), String(req.body.token ?? ""))));
+app.post("/api/reroll", wrap((planner, req) => planner.reroll(String(req.body.member), String(req.body.date), String(req.body.token ?? ""))));
 
 export default app;
 

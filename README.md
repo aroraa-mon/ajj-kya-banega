@@ -21,7 +21,7 @@ With no `.env`, it uses a local database in `data/pgdata` (same SQL as Supabase)
 All data lives in the database: `members`, `dishes`, `day_plans`, `plan_options`, `votes`, `dish_weights` (see `db/schema.sql`). The server connects directly, so everyone's phones see the same votes. Row level security is on with no policies, so the public Supabase API key can't read or change anything.
 
 ## Production (Vercel)
-This is an Express app. Vercel detects `src/server.ts`, serves `public/` from the CDN, and runs the API as one Fluid Function (region `bom1` / Mumbai).
+`public/` is the static shell (CDN). `api/index.ts` is the Express serverless function; `vercel.json` rewrites `/api/*` there (region `bom1` / Mumbai).
 
 1. One-time schema/seed against Supabase (from your laptop, with `.env` set):
    ```bash
@@ -30,7 +30,7 @@ This is an Express app. Vercel detects `src/server.ts`, serves `public/` from th
 2. In the [Vercel dashboard](https://vercel.com): **Add New Project** → import `aroraa-mon/ajj-kya-banega` (or your fork).
 3. Project → **Settings → Environment Variables** → add for Production (and Preview if you want):
    - `DATABASE_URL` = your Supabase **Session pooler** URI (same value as local `.env`)
-4. Deploy. Open `https://YOUR_PROJECT.vercel.app/api/health` — expect `{"ok":true}`.
+4. Deploy. Open `https://YOUR_PROJECT.vercel.app/api/health` — expect `{"ok":true}` (JSON, not the HTML page).
 
 CLI alternative (after `npm i -g vercel` and login):
 ```bash

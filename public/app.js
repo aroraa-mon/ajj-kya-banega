@@ -221,7 +221,16 @@ function render() {
 async function load() {
   try {
     const r = await fetch(`/api/home?member=${encodeURIComponent(member)}`);
+    const type = r.headers.get("content-type") ?? "";
+    if (!type.includes("application/json")) {
+      say("Server API missing — redeploy?", true);
+      return;
+    }
     data = await r.json();
+    if (!r.ok) {
+      say(data.error ?? "Could not load", true);
+      return;
+    }
     render();
   } catch { say("Offline?", true); }
 }
