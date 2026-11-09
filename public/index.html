@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Aaj Kya Banega</title>
+  <meta name="description" content="One breakfast answer a day for the family.">
+  <meta name="theme-color" content="#fbf5ea" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1a130c" media="(prefers-color-scheme: dark)">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Aaj Kya Banega">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <h1 id="title">Aaj Kya Banega?</h1>
+      <p id="subtitle"></p>
+    </div>
+    <div class="controls">
+      <div class="seg" id="lang" role="group" aria-label="Language">
+        <button data-lang="hinglish">Hinglish</button>
+        <button data-lang="hi">हिंदी</button>
+        <button data-lang="en">English</button>
+      </div>
+      <button type="button" id="whoName" hidden></button>
+    </div>
+  </header>
+
+  <section class="card gate" id="gate">
+    <p class="eyebrow" id="whoLabel"></p>
+    <form id="pinForm">
+      <select id="member"></select>
+      <input id="pin" type="password" inputmode="numeric" maxlength="4" autocomplete="off">
+      <input id="pinAgain" type="password" inputmode="numeric" maxlength="4" autocomplete="off" hidden>
+      <p class="status" id="gateHint"></p>
+      <button type="submit" class="go" id="pinGo"></button>
+    </form>
+  </section>
+
+  <main id="board" hidden>
+    <section class="card" id="today"></section>
+    <section class="card" id="tomorrow"></section>
+  </main>
+
+  <p class="msg" id="msg" role="status"></p>
+
+  <script src="app.js"></script>
+</body>
+</html>

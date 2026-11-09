@@ -1,0 +1,30 @@
+{
+  "name": "aaj-kya-banega",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "One breakfast answer a day for the family, with voting and a cook override",
+  "scripts": {
+    "dev": "tsx src/server.ts",
+    "start": "tsx src/server.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "db:setup": "tsx src/setup.ts"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.5.15",
+    "express": "^4.21.2",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.10.0",
+    "@types/pg": "^8.23.1",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

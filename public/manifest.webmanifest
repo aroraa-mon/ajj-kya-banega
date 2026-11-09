@@ -1,0 +1,17 @@
+{
+  "id": "/",
+  "name": "Aaj Kya Banega?",
+  "short_name": "Aaj Kya Banega",
+  "description": "One breakfast answer a day for the family, with voting and a cook override.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fbf5ea",
+  "theme_color": "#c2570c",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
